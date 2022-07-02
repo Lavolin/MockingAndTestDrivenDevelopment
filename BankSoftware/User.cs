@@ -1,9 +1,11 @@
-﻿namespace BankSoftware
+﻿using BankSoftware.Contracts;
+
+namespace BankSoftware
 {
     public class User
     {
         public string Name { get; set; }
-        public Account Account { get; set; }
+        public IAccount Account { get; set; }
 
         public override string ToString()
         {

@@ -1,9 +1,10 @@
-﻿using System;
+﻿using BankSoftware.Contracts;
+using System;
 
 
 namespace BankSoftware
 {
-    public class Account
+    public class Account : IAccount
     {
         public decimal Amount { get; set; }
 
