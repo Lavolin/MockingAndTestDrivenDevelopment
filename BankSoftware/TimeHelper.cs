@@ -7,7 +7,7 @@ namespace BankSoftware
 {
     public class TimeHelper : ITimeHelper
     {
-        public bool ShouldGetCommision()
+        public virtual bool ShouldGetCommision()
         {
             if (DateTime.Now.DayOfWeek == DayOfWeek.Monday)
             {

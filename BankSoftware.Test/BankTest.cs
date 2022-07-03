@@ -26,17 +26,16 @@ namespace BankSoftware.Test
                     }
                 );
 
-            fakeUsers = new List<User>()
-                {
+            fakeUsers = new List<User>() {
                     new User()
                     {
                         Name = "Toshko",
-                        Account = accountMock.Object
+                        Account = new FakeAccount() // не използваме accountMock , защото не са настроени
                     },
                     new User()
                     {
                         Name = "Henito",
-                        Account = accountMock.Object
+                        Account = new FakeAccount() // не използваме accountMock , защото не са настроени
 
                     }
                 };
@@ -46,6 +45,9 @@ namespace BankSoftware.Test
         public void Test_Transfer_Money_During_Normal_Hours_Should_Work()
         {
             Mock<ITimeHelper> timeMock = new Mock<ITimeHelper>();
+            timeMock.Setup(t => t.ShouldGetCommision()).Returns(false);
+
+
             Mock<IBankDb> dbMock = new Mock<IBankDb>();
 
             dbMock
@@ -56,6 +58,8 @@ namespace BankSoftware.Test
 
             bank.TransferMoney("Toshko", "Henito", 30);
 
+            
+
             Assert.That(bank.Users[0].Account.Amount, Is.EqualTo(70));
             Assert.That(bank.Users[1].Account.Amount, Is.EqualTo(130));
         }
@@ -63,10 +67,21 @@ namespace BankSoftware.Test
         [Test]
         public void Test_Transfer_Money_During_Commision_Hours_Should_Work()
         {
+            Mock<ITimeHelper> timeMock = new Mock<ITimeHelper>();
 
-            Bank bank = new Bank(new FakeDb(), new FakeCommisionTime());
+            timeMock.Setup(t => t.ShouldGetCommision()).Returns(true);
+
+            Mock<IBankDb> dbMock = new Mock<IBankDb>();
+
+            dbMock
+                .Setup(db => db.ReadUsers())
+                .Returns(fakeUsers);
+
+            Bank bank = new Bank(dbMock.Object, timeMock.Object);
 
             bank.TransferMoney("Toshko", "Henito", 30);
+
+            dbMock.Verify(db => db.Update(It.IsAny<Bank>()), Times.AtLeastOnce); // потвърждава, че сме извикали Update метода на базата
 
             Assert.That(bank.Users[0].Account.Amount, Is.EqualTo(69));
             Assert.That(bank.Users[1].Account.Amount, Is.EqualTo(129));
