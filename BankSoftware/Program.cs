@@ -10,7 +10,7 @@ namespace BankSoftware
            
             IBankDb database = new BankTextDb(); // ако решим да променим базата, се променя само този ред!!! (dependancy Inversion)
 
-            Bank bank = new Bank(database);
+            Bank bank = new Bank(database, new TimeHelper());
 
             string command = Console.ReadLine();
 

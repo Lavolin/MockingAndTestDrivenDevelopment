@@ -7,16 +7,19 @@ namespace BankSoftware.Test.Fakes
 {
     internal class FakeAccount : IAccount
     {
-        public decimal Amount => 100;
+        private decimal amount = 100;
+
+        public decimal Amount { get => amount; set => amount = value; }
 
         public void DepositMoney(decimal amount)
         {
-            
+            Amount += amount;
         }
 
         public void WithdrawMoney(decimal amount)
         {
-            
+            Amount -= amount;
+
         }
     }
 }

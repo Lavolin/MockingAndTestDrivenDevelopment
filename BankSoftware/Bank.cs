@@ -9,10 +9,12 @@ namespace BankSoftware
     public class Bank
     {
         private IBankDb database;
+        private readonly ITimeHelper time;
 
-        public Bank(IBankDb database)   // dependancy inversion
+        public Bank(IBankDb database, ITimeHelper time)   // dependancy inversion
         {
             this.database = database;
+            this.time = time;
             Users = database.ReadUsers();
 
         }
@@ -20,6 +22,12 @@ namespace BankSoftware
         public List<User> Users { get; set; }
         public void TransferMoney(User from, User to, decimal amount)
         {
+            if (time.ShouldGetCommision())
+            {
+                from.Account.WithdrawMoney(1);
+                to.Account.WithdrawMoney(1);
+            }
+
             from.Account.WithdrawMoney(amount);
             to.Account.DepositMoney(amount);
 
@@ -30,6 +38,13 @@ namespace BankSoftware
         {
             User from = Users.First(x => x.Name == fromName);
             User to = Users.First(x => x.Name == toName);
+
+            if (time.ShouldGetCommision())
+            {
+                from.Account.WithdrawMoney(1);
+                to.Account.WithdrawMoney(1);
+            }
+
             from.Account.WithdrawMoney(amount);
             to.Account.DepositMoney(amount);
 
