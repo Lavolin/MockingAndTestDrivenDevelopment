@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Chainblock
@@ -66,7 +67,7 @@ namespace Chainblock
         public ITransaction GetById(int id)
             => this.transactions.ContainsKey(id)
             ? this.transactions[id]
-            : default;
+            : throw new InvalidOperationException();
 
         public IEnumerable<ITransaction> GetByReceiverAndAmountRange(string receiver, double lo, double hi)
         {
@@ -90,7 +91,21 @@ namespace Chainblock
 
         public IEnumerable<ITransaction> GetByTransactionStatus(TransactionStatus status)
         {
-            throw new NotImplementedException();
+            if (!this.transactions.Values.Any(x=> x.Status == status))
+            {
+                throw new InvalidOperationException();
+            }
+
+            var result = this.transactions
+                .Values
+                .Where(x => x.Status == status)
+                .OrderByDescending(x => x.Amount)
+                .ToList();
+            if (!result.Any())
+            {
+                throw new InvalidOperationException();
+            }
+            return result;
         }
 
         public IEnumerable<ITransaction> GetByTransactionStatusAndMaximumAmount(TransactionStatus status, double amount)
@@ -105,7 +120,12 @@ namespace Chainblock
 
         public void RemoveTransactionById(int id)
         {
-            throw new NotImplementedException();
+            if (!transactions.ContainsKey(id))
+            {
+                throw new InvalidOperationException();
+            }
+
+            this.transactions.Remove(id);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

@@ -1,10 +1,20 @@
 ﻿using Chainblock.Contracts;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 
 namespace Chainblock.Tests
 {
     public class ChainblockTests
     {
+        private Chainblock chainblock;
+
+        [SetUp]
+        public void SetUpMethod()
+        {
+            this.chainblock = new Chainblock();
+        }
+
         [Test]
         public void AddMethod_ShouldAdd_Transaction_If_DataIsValid()
         {
@@ -17,7 +27,7 @@ namespace Chainblock.Tests
                 Amount = 250
             };
 
-            IChainblock chainblock = new Chainblock();
+
             chainblock.Add(transaction);
             chainblock.Add(transaction); // тестваме дали се добавят уникални транзакции
 
@@ -47,10 +57,10 @@ namespace Chainblock.Tests
                 Amount = 150
             };
 
-            IChainblock chainblock = new Chainblock();
+
 
             chainblock.Add(transaction);
-            
+
 
             Assert.True(chainblock.Contains(transaction));
             Assert.True(chainblock.Contains(transaction.Id));
@@ -58,7 +68,7 @@ namespace Chainblock.Tests
             Assert.False(chainblock.Contains(transaction2));
             Assert.False(chainblock.Contains(transaction2.Id));
 
-           
+
         }
 
         [Test]
@@ -74,7 +84,7 @@ namespace Chainblock.Tests
                 Amount = 250
             };
 
-            IChainblock chainblock = new Chainblock();
+
             chainblock.Add(transaction);
 
             // Act
@@ -92,28 +102,122 @@ namespace Chainblock.Tests
         [Test]
         public void ChangeTransactionStatus_ShouldThrowException_IfDataDoesnExist()
         {
-            // Arrange
+
+            Assert.Throws<ArgumentException>(
+                () => chainblock.ChangeTransactionStatus(1, TransactionStatus.Successfull));
+
+        }
+
+        [Test]
+        public void RemoveTransactionByID_Should_RemoveTransaction_IfDataExist()
+        {
+            //Arrange
+            ITransaction transaction = new Transaction
+            {
+                Id = 12,
+                Status = TransactionStatus.Failed,
+                From = "Todor",
+                To = "Heni",
+                Amount = 250
+            };
+
+            this.chainblock.Add(transaction);
+
+            //Act
+
+            this.chainblock.RemoveTransactionById(transaction.Id);
+
+            //Assert
+            Assert.False(this.chainblock.Contains(transaction));
+            Assert.AreEqual(0, this.chainblock.Count);
+        }
+
+
+        [Test]
+        public void RemoveTransactionByID_Should_RemoveTransaction_IfDataDoesntExist()
+        {
+            Assert.Throws<InvalidOperationException>(
+                () => this.chainblock.RemoveTransactionById(5));
+        }
+
+        [Test]
+        public void GetByID_ShouldReturnRecord_IfDataExist()
+        {
+            //Arrange
             ITransaction transaction = new Transaction
             {
                 Id = 1,
+                Status = TransactionStatus.Aborted,
+                From = "Todor",
+                To = "Heni",
+                Amount = 250
+            };
+
+            this.chainblock.Add(transaction);
+            //Act
+            ITransaction actualTransaction = this.chainblock.GetById(1);
+
+            ITransaction transactionCopy = new Transaction
+            {
+                Id = 1,
+                Status = TransactionStatus.Aborted,
+                From = "Todor",
+                To = "Heni",
+                Amount = 250
+            };
+
+            //Assert
+            Assert.AreEqual(transactionCopy, actualTransaction);
+        }
+
+        [Test]
+        public void GetByID_ShouldThrawnException_WhenDataDoesntExist()
+        {
+            Assert.Throws<InvalidOperationException>(
+                () => this.chainblock.GetById(5));
+
+        }
+
+        [Test]
+        public void GetTransactionBystatus_ShouldReturnTransactions_WithStatus()
+        {
+            ITransaction transaction = new Transaction
+            {
+                Id = 1,
+                Status = TransactionStatus.Aborted,
+                From = "Todor",
+                To = "Heni",
+                Amount = 250
+            };
+
+            ITransaction transaction2 = new Transaction
+            {
+                Id = 3,
                 Status = TransactionStatus.Successfull,
                 From = "Todor",
                 To = "Heni",
                 Amount = 250
             };
 
-            IChainblock chainblock = new Chainblock();
-            chainblock.Add(transaction);
+            ITransaction transaction3 = new Transaction
+            {
+                Id = 3,
+                Status = TransactionStatus.Aborted,
+                From = "Todor",
+                To = "Heni",
+                Amount = 250
+            };
 
-            // Act
-
-            chainblock.ChangeTransactionStatus(1, TransactionStatus.Failed);
+            this.chainblock.Add(transaction);
+            this.chainblock.Add(transaction2);
+            this.chainblock.Add(transaction3);
+            //Act
+            IEnumerable<ITransaction> transactions = 
+                this.chainblock.GetByTransactionStatus(TransactionStatus.Successfull);
 
             //Assert
-            ITransaction chainblockTransaction = chainblock.GetById(1);
-
-            Assert.AreEqual(TransactionStatus.Failed, chainblockTransaction.Status);
-
+            CollectionAssert.AreEqual(new ITransaction[] { transaction2 }, transactions);
         }
+
     }
 }
